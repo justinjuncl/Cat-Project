@@ -11,8 +11,8 @@
 * OpenCV
 
 ## Build / Run
-`cd build`
-`cmake ..`
-`make`
-`cd ../bin`
-`./KinectFusion`
+  `cd build`\
+  `cmake ..`\
+  `make`\
+  `cd ../bin`\
+  `./KinectFusion`
