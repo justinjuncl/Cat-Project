@@ -11,6 +11,7 @@
 * OpenCV
 
 ## Build / Run
+  `mkdir build`\
   `cd build`\
   `cmake ..`\
   `make`\
