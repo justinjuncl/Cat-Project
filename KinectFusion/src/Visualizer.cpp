@@ -13,13 +13,13 @@ Visualizer::Visualizer(const SurfaceData& data, const cv::Mat& colorMap) :
 
 void Visualizer::visualizeDepthMap() {
     cv::Mat normalizedDepthMap;
-    data.filteredDepthMap.convertTo(normalizedDepthMap, CV_8UC3, 255.0f);
+    data.filteredDepthMap.convertTo(normalizedDepthMap, CV_16UC3, 5000);
     cv::imshow("Bilateral Filtered Depth 2D Viz", normalizedDepthMap);
 }
 
 void Visualizer::visualizeNormalMap() {
     cv::Mat vizNormalMap;
-    data.normalMap.convertTo(vizNormalMap, CV_8UC3, 255.0f);
+    data.normalMap.convertTo(vizNormalMap, CV_8UC3, 255);
     cv::imshow("Normal 2D Viz", vizNormalMap);
 }
 

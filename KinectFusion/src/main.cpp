@@ -21,9 +21,9 @@ int main(int, char**) {
 
     cat::KinectFusion::Visualizer viz(data, colorMap);
 
-    // cv::imshow("Depth", depthMap);
+    cv::imshow("Depth 2D Viz", depthMap);
     // cv::imshow("Color", colorMap);
-    // viz.visualizeDepthMap();
+    viz.visualizeDepthMap();
     viz.visualizeNormalMap();
     viz.visualizeVertexCloud();
 
