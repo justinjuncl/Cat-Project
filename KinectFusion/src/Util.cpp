@@ -2,7 +2,7 @@
 
 namespace cat {
 
-namespace KinectFusion {
+namespace kf {
 
 CameraIntrinsics loadCameraIntrinsics(const char *fileName) {
     CameraIntrinsics camIntrinsics;
@@ -20,6 +20,6 @@ CameraIntrinsics loadCameraIntrinsics(const char *fileName) {
     return camIntrinsics;
 }
 
-} // namespace KinectFusion
+} // namespace kf
 
 } // namespace cat

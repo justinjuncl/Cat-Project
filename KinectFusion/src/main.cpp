@@ -1,5 +1,6 @@
 #include "Util.h"
 #include "SurfaceMeasurement.h"
+#include "SurfaceReconstruction.h"
 #include "Visualizer.h"
 
 int main(int, char**) {
@@ -14,18 +15,32 @@ int main(int, char**) {
                    << "chn: " << colorMap.channels() << std::endl
                    << "typ: " << colorMap.type() << std::endl << std::endl;
 
-    cat::KinectFusion::CameraIntrinsics camIntrinsics = cat::KinectFusion::loadCameraIntrinsics("res/intrinsics.txt");
-    cat::KinectFusion::BilateralFilterParams filterParams;
+    cat::kf::CameraIntrinsics camIntrinsics = cat::kf::loadCameraIntrinsics("res/intrinsics.txt");
+    cat::kf::BilateralFilterParams filterParams;
 
-    cat::KinectFusion::SurfaceData data = cat::KinectFusion::computeSurfaceMeasurement(depthMap, camIntrinsics, filterParams);
+    cat::kf::SurfaceData data = cat::kf::computeSurfaceMeasurement(depthMap, camIntrinsics, filterParams);
 
-    cat::KinectFusion::Visualizer viz(data, colorMap);
+    cat::kf::VolumeParams volumeParams;
+    cat::kf::Volume volume(volumeParams);
 
-    cv::imshow("Depth 2D Viz", depthMap);
+    cv::Affine3f pose = cv::Affine3f().Identity();
+    pose.translation(cv::Vec3f(volume.params.size.x / 2 * volume.params.scale,
+                               volume.params.size.y / 2 * volume.params.scale,
+                               volume.params.size.z / 2 * volume.params.scale - 1.f));
+
+    std::cout << "pose:" << std::endl
+              << pose.translation() << std::endl;
+
+    cat::kf::computeSurfaceReconstruction(pose, cat::kf::processDepthMap(depthMap), camIntrinsics, volume);
+
+    cat::kf::Visualizer viz(data, colorMap, volume);
+
+    // cv::imshow("Depth 2D Viz", depthMap);
     // cv::imshow("Color", colorMap);
-    viz.visualizeDepthMap();
-    viz.visualizeNormalMap();
-    viz.visualizeVertexCloud();
+    // viz.visualizeDepthMap();
+    // viz.visualizeVertexCloud();
+    // viz.visualizeNormalMap();
+    viz.visualizeVolume();
 
     return 0;
 }

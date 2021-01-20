@@ -3,7 +3,7 @@
 
 namespace cat {
 
-namespace KinectFusion {
+namespace kf {
 
 struct SurfaceData {
     cv::Mat vertexMap;
@@ -23,7 +23,7 @@ cv::Mat processDepthMap(const cv::Mat& preDepthMap);
 cv::Mat createVertexMap(const cv::Mat& depthMap, const CameraIntrinsics& camIntrinsics);
 cv::Mat createNormalMap(const cv::Mat& vertexMap);
 
-} // namespace KinectFusion
+} // namespace kf
 
 } // namespace cat
 

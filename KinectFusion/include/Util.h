@@ -7,6 +7,7 @@
 
 #include <opencv2/opencv.hpp>
 #include <opencv2/core.hpp>
+#include <opencv2/core/affine.hpp>
 #include <opencv2/core/hal/interface.h>
 #include <opencv2/imgproc.hpp>
 #include <opencv2/imgcodecs.hpp>
@@ -19,7 +20,7 @@
 
 namespace cat {
 
-namespace KinectFusion {
+namespace kf {
 
 struct CameraIntrinsics {
     int width, height;
@@ -28,7 +29,7 @@ struct CameraIntrinsics {
 
 CameraIntrinsics loadCameraIntrinsics(const char *fileName);
 
-} // namespace KinectFusion
+} // namespace kf
 
 } // namespace cat
 

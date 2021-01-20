@@ -1,17 +1,9 @@
-
-// - Depth Map & Color Map 읽기 (cv::imread)
-// - Bilateral Filtering 수행 (cv::bilateralFilter)
-// - Vertex Map & Normal Map 계산 (cv::Mat Operation)
-// - 시각화 (cv::imshow, cv::viz::Viz3d)
-//     - Depth Map (2D) & Color Map (2D)
-//     - Filtered Depth Map (2D)
-//     - Colored Vertex Map (3D) & Normal Map (2D)
 #include "Util.h"
 #include "SurfaceMeasurement.h"
 
 namespace cat {
 
-namespace KinectFusion {
+namespace kf {
 
 SurfaceData computeSurfaceMeasurement(const cv::Mat& preDepthMap, const CameraIntrinsics& camIntrinsics,
                                       const BilateralFilterParams& filterParams) {
@@ -89,6 +81,6 @@ cv::Mat createNormalMap(const cv::Mat& vertexMap) {
     return normalMap;
 }
 
-} // namespace KinectFusion
+} // namespace kf
 
 } // namespace cat
