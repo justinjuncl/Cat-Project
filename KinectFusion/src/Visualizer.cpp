@@ -6,7 +6,7 @@ namespace kf {
 
 Visualizer::Visualizer(const SurfaceData& data, const cv::Mat& colorMap,
                        const Volume& volume) :
-    vizWindow(cv::viz::Viz3d("Vertex Viz")),
+    vizWindow(cv::viz::Viz3d("Point Cloud Viz")),
     vertexCloud(cv::viz::WCloud(data.vertexMap, colorMap)),
     data(data), colorMap(colorMap), volume(volume) {
 }
@@ -19,8 +19,9 @@ void Visualizer::visualizeDepthMap() {
 
 void Visualizer::visualizeNormalMap() {
     cv::Mat vizNormalMap;
-    data.normalMap = (data.normalMap + cv::Scalar::all(1.0f)) * 0.5f;
-    data.normalMap.convertTo(vizNormalMap, CV_8UC3, 255);
+    vizNormalMap = (data.normalMap + cv::Scalar::all(1.0f)) * 0.5f;
+    vizNormalMap.convertTo(vizNormalMap, CV_8UC3, 255);
+    cv::cvtColor(vizNormalMap, vizNormalMap, cv::COLOR_BGR2RGB);
     cv::imshow("Normal 2D Viz", vizNormalMap);
 }
 
@@ -38,12 +39,17 @@ void Visualizer::visualizeVolume() {
     for (size_t z = 0; z < volume.params.size.z; ++z) {
         for (size_t y = 0; y < volume.params.size.y; ++y) {
             for (size_t x = 0; x < volume.params.size.x; ++x) {
-                if (volume.getVoxel(x, y, z).tsdf < 0) {
-                    float t = -volume.getVoxel(x, y, z).tsdf / volume.params.mu;
+                float tsdf = volume.getVoxel(x, y, z).tsdf;
+                if (-1.0f < tsdf && tsdf < 1.0f) {
+                    float t = (tsdf + 1.0f) *  0.5f;
                     t = std::min(std::max(t, 0.0f), 1.0f);
                     cv::Vec3b color = t * green + (1 - t) * red;
 
-                    volumeCloudData.push_back(volume.getVoxelPosition(x, y, z));
+                    cv::Point3f voxel = volume.getVoxelPosition(x, y, z);
+                    voxel.y *= -1.0f;
+                    voxel.z *= -1.0f;
+
+                    volumeCloudData.push_back(voxel);
                     volumeCloudColorData.push_back(color);
                 }
             }

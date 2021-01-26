@@ -5,18 +5,6 @@ namespace cat {
 
 namespace kf {
 
-cv::Point2i nearestNeighbourProject(const CameraIntrinsics& camIntrinsics, const cv::Point3f& cameraCoord) {
-    return cv::Point2i(round(cameraCoord.x / cameraCoord.z * camIntrinsics.fx + camIntrinsics.cx),
-                       round(cameraCoord.y / cameraCoord.z * camIntrinsics.fy + camIntrinsics.cy));
-}
-
-float calculateLambda(const CameraIntrinsics& camIntrinsics, const cv::Point2i& uv) {
-    cv::Point3f lambdaVector = cv::Point3f((uv.x - camIntrinsics.cx) / camIntrinsics.fx,
-                                           (uv.y - camIntrinsics.cy) / camIntrinsics.fy,
-                                           1.0f);
-    return cv::norm(lambdaVector);
-}
-
 void computeSurfaceReconstruction(const cv::Affine3f& pose, const cv::Mat& depthMap,
                                   const CameraIntrinsics& camIntrinsics,
                                   Volume& volume) {
@@ -43,14 +31,14 @@ void computeSurfaceReconstruction(const cv::Affine3f& pose, const cv::Mat& depth
                 float eta = (-1.0f) * ((1.0f / lambda) * cv::norm(pCameraCoordinate) - depth); 
 
                 if (eta >= -volume.params.mu) {
-                    float currTSDF = std::min(1.0f, eta / volume.params.mu);
+                    float currTSDF = std::fmin(1.0f, eta / volume.params.mu);
                     int currWeight = 1;
 
                     Voxel oldVoxel = volume.getVoxel(x, y, z);
 
                     float newTSDF = (oldVoxel.weight * oldVoxel.tsdf + currWeight * currTSDF)
                                     / (oldVoxel.weight + currWeight);
-                    int newWeight = std::min(oldVoxel.weight + currWeight, volume.params.maxWeight);
+                    int newWeight = std::fmin(oldVoxel.weight + currWeight, volume.params.maxWeight);
 
                     volume.getVoxel(x, y, z) = Voxel(newTSDF, newWeight);
                 }
@@ -58,7 +46,19 @@ void computeSurfaceReconstruction(const cv::Affine3f& pose, const cv::Mat& depth
         }
     }
 
-    std::cout << "Complete" << std::endl;
+    std::cout << "Surface Reconstruction Complete" << std::endl;
+}
+
+cv::Point2i nearestNeighbourProject(const CameraIntrinsics& camIntrinsics, const cv::Point3f& cameraCoord) {
+    return cv::Point2i(round(cameraCoord.x / cameraCoord.z * camIntrinsics.fx + camIntrinsics.cx),
+                       round(cameraCoord.y / cameraCoord.z * camIntrinsics.fy + camIntrinsics.cy));
+}
+
+float calculateLambda(const CameraIntrinsics& camIntrinsics, const cv::Point2i& uv) {
+    cv::Point3f lambdaVector = cv::Point3f((uv.x - camIntrinsics.cx) / camIntrinsics.fx,
+                                           (uv.y - camIntrinsics.cy) / camIntrinsics.fy,
+                                           1.0f);
+    return cv::norm(lambdaVector);
 }
 
 } // namespace kf
