@@ -27,7 +27,11 @@ struct CameraIntrinsics {
     float fx, fy, cx, cy;
 };
 
-CameraIntrinsics loadCameraIntrinsics(const char *fileName);
+struct BilateralFilterParams {
+    int     d = 7;
+    double  sigmaColor = 4.0;
+    double  sigmaSpace = 0.25;
+};
 
 } // namespace kf
 

@@ -1,47 +1,34 @@
 #include "Util.h"
+
+#include "Frame.h"
+#include "Camera.h"
+
 #include "SurfaceMeasurement.h"
 #include "SurfaceReconstruction.h"
 #include "SurfacePrediction.h"
+
 #include "Visualizer.h"
 
 int main(int, char**) {
-    cv::Mat depthMap = cv::imread("res/images/depth-0.png", cv::IMREAD_UNCHANGED);
-    cv::Mat colorMap = cv::imread("res/images/color-0.png", cv::IMREAD_COLOR);
-
-    std::cout << "depthMap: " << std::endl
-                   << "chn: " << depthMap.channels() << std::endl
-                   << "typ: " << depthMap.type() << std::endl << std::endl;
-
-    std::cout << "colorMap: " << std::endl
-                   << "chn: " << colorMap.channels() << std::endl
-                   << "typ: " << colorMap.type() << std::endl << std::endl;
-
-    cat::kf::CameraIntrinsics camIntrinsics = cat::kf::loadCameraIntrinsics("res/intrinsics.txt");
-    cat::kf::BilateralFilterParams filterParams;
-
-    cat::kf::SurfaceData data = cat::kf::computeSurfaceMeasurement(depthMap, camIntrinsics, filterParams);
+    cat::kf::Camera camera("res/images/depth-%d.png", "res/images/color-%d.png", "res/intrinsics.txt");
+    cat::kf::Frame frame = camera.getFrame();
 
     cat::kf::VolumeParams volumeParams;
     cat::kf::Volume volume(volumeParams);
 
-    cv::Affine3f pose = cv::Affine3f().Identity();
+    cat::kf::BilateralFilterParams filterParams;
 
-    std::cout << "pose:" << std::endl
-              << pose.rotation() << std::endl
-              << pose.translation() << std::endl << std::endl;
+    cat::kf::computeSurfaceMeasurement(frame, filterParams);
+    cat::kf::computeSurfaceReconstruction(frame, volume);
+    cat::kf::Frame prevFrame = cat::kf::computeSurfacePrediction(frame, volume);
 
-    cat::kf::computeSurfaceReconstruction(pose, cat::kf::processDepthMap(depthMap), camIntrinsics, volume);
-    cat::kf::SurfaceData data_pred = cat::kf::computeSurfacePrediction(pose, camIntrinsics, volume);
-
-    cat::kf::Visualizer viz(data_pred, colorMap, volume);
-
-
-    // cv::imshow("Depth 2D Viz", depthMap);
-    // cv::imshow("Color", colorMap);
-    // viz.visualizeDepthMap();
+    cat::kf::Visualizer viz(prevFrame, volume);
+    // cv::imshow("Depth 2D Viz", frame.depthMap);
+    // cv::imshow("Color", frame.colorMap);
+    viz.visualizeDepthMap();
     viz.visualizeNormalMap();
-    viz.visualizeVertexCloud();
-    // viz.visualizeVolume();
+    // viz.visualizeVertexCloud();
+    viz.visualizeVolume();
 
     return 0;
 }

@@ -1,45 +1,8 @@
-#include "Util.h"
 #include "SurfaceMeasurement.h"
 
 namespace cat {
 
 namespace kf {
-
-SurfaceData computeSurfaceMeasurement(const cv::Mat& preDepthMap, const CameraIntrinsics& camIntrinsics,
-                                      const BilateralFilterParams& filterParams) {
-    cv::Mat depthMap = processDepthMap(preDepthMap);
-
-    cv::Mat filteredDepthMap;
-    cv::bilateralFilter(depthMap, filteredDepthMap, filterParams.d, filterParams.sigmaColor, filterParams.sigmaSpace);
-
-    cv::Mat vertexMap = createVertexMap(filteredDepthMap, camIntrinsics);
-    cv::Mat normalMap = createNormalMap(vertexMap);
-
-    SurfaceData data;
-    data.vertexMap = vertexMap;
-    data.filteredDepthMap = filteredDepthMap;
-    data.normalMap = normalMap;
-
-    return data;
-}
-
-cv::Mat processDepthMap(const cv::Mat& preDepthMap) {
-    cv::Mat depthMap(preDepthMap.size(), CV_32F);
-    
-    float depth;
-    for (size_t y = 0; y < depthMap.rows; ++y) {
-        for (size_t x = 0; x < depthMap.cols; ++x) {
-            depth = preDepthMap.at<ushort>(y, x);
-            if (depth == 0) {
-                depthMap.at<float>(y, x) = M_INFINITY;
-            } else {
-                depthMap.at<float>(y, x) = depth * 1.0f / 5000.0f;   
-            }
-        }
-    }
-
-    return depthMap;
-}
 
 cv::Mat createVertexMap(const cv::Mat& depthMap, const CameraIntrinsics& camIntrinsics) {
     cv::Mat vertexMap(depthMap.size(), CV_32FC3);
@@ -79,6 +42,18 @@ cv::Mat createNormalMap(const cv::Mat& vertexMap) {
         }
     }
     return normalMap;
+}
+
+void computeSurfaceMeasurement(Frame& frame, const BilateralFilterParams& filterParams) {
+    cv::Mat filteredDepthMap;
+    cv::bilateralFilter(frame.depthMap, filteredDepthMap, filterParams.d, filterParams.sigmaColor, filterParams.sigmaSpace);
+
+    cv::Mat vertexMap = createVertexMap(filteredDepthMap, frame.camIntrinsics);
+    cv::Mat normalMap = createNormalMap(vertexMap);
+
+    frame.vertexMap = vertexMap;
+    frame.normalMap = normalMap;
+    frame.filteredDepthMap = filteredDepthMap;
 }
 
 } // namespace kf

@@ -104,11 +104,9 @@ cv::Vec3f calculateNormal(const Volume& volume, const cv::Point3f& pLocal) {
     return n;
 }
 
-SurfaceData computeSurfacePrediction(const cv::Affine3f& pose,
-                                     const CameraIntrinsics& camIntrinsics,
-                                     const Volume& volume) {
-    cv::Mat vertexMap(camIntrinsics.height, camIntrinsics.width, CV_32FC3);
-    cv::Mat normalMap(camIntrinsics.height, camIntrinsics.width, CV_32FC3);
+Frame computeSurfacePrediction(const Frame& frame, const Volume& volume) {
+    cv::Mat vertexMap(frame.camIntrinsics.height, frame.camIntrinsics.width, CV_32FC3);
+    cv::Mat normalMap(frame.camIntrinsics.height, frame.camIntrinsics.width, CV_32FC3);
 
     cv::Vec3f volumePosition = cv::Vec3f(volume.getPosition());
     cv::Point3f minVoxelPosition = volume.getVoxelPosition(0, 0, 0);
@@ -122,10 +120,10 @@ SurfaceData computeSurfacePrediction(const cv::Affine3f& pose,
 
     for (size_t y = 0; y < vertexMap.rows; ++y) {
         for (size_t x = 0; x < vertexMap.cols; ++x) {
-            cv::Vec3f rayOrigin = pose.translation();
-            cv::Vec3f rayDirection = pose.rotation() * cv::Vec3f((x - camIntrinsics.cx) / camIntrinsics.fx,
-                                                                 (y - camIntrinsics.cy) / camIntrinsics.fy,
-                                                                 1.0f);
+            cv::Vec3f rayOrigin = frame.pose.translation();
+            cv::Vec3f rayDirection = frame.pose.rotation() * cv::Vec3f((x - frame.camIntrinsics.cx) / frame.camIntrinsics.fx,
+                                                                       (y - frame.camIntrinsics.cy) / frame.camIntrinsics.fy,
+                                                                       1.0f);
             cv::normalize(rayDirection, rayDirection);
 
             if (outOfBoundsRay(minVoxelPosition, maxVoxelPosition, rayOrigin, rayDirection, t)) continue;
@@ -163,13 +161,13 @@ SurfaceData computeSurfacePrediction(const cv::Affine3f& pose,
         }
     }
 
-    SurfaceData data;
-    data.vertexMap = vertexMap;
-    data.normalMap = normalMap;
+    Frame newFrame(frame);
 
-    return data; 
+    newFrame.vertexMap = vertexMap;
+    newFrame.normalMap = normalMap;
+
+    return newFrame; 
 }
-
 
 } // namespace kf
     

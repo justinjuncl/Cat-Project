@@ -4,22 +4,21 @@ namespace cat {
 
 namespace kf {
 
-Visualizer::Visualizer(const SurfaceData& data, const cv::Mat& colorMap,
-                       const Volume& volume) :
+Visualizer::Visualizer(const Frame& frame, const Volume& volume) :
     vizWindow(cv::viz::Viz3d("Point Cloud Viz")),
-    vertexCloud(cv::viz::WCloud(data.vertexMap, colorMap)),
-    data(data), colorMap(colorMap), volume(volume) {
+    vertexCloud(cv::viz::WCloud(frame.vertexMap, frame.colorMap)),
+    frame(frame), volume(volume) {
 }
 
 void Visualizer::visualizeDepthMap() {
     cv::Mat normalizedDepthMap;
-    data.filteredDepthMap.convertTo(normalizedDepthMap, CV_16UC3, 5000);
+    frame.filteredDepthMap.convertTo(normalizedDepthMap, CV_16UC3, 5000);
     cv::imshow("Bilateral Filtered Depth 2D Viz", normalizedDepthMap);
 }
 
 void Visualizer::visualizeNormalMap() {
     cv::Mat vizNormalMap;
-    vizNormalMap = (data.normalMap + cv::Scalar::all(1.0f)) * 0.5f;
+    vizNormalMap = (frame.normalMap + cv::Scalar::all(1.0f)) * 0.5f;
     vizNormalMap.convertTo(vizNormalMap, CV_8UC3, 255);
     cv::cvtColor(vizNormalMap, vizNormalMap, cv::COLOR_BGR2RGB);
     cv::imshow("Normal 2D Viz", vizNormalMap);

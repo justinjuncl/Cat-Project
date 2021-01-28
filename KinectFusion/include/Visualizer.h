@@ -2,7 +2,7 @@
 #define VISUALIZER_H
 
 #include "Util.h"
-#include "SurfaceMeasurement.h"
+#include "Frame.h"
 #include "SurfaceReconstruction.h"
 
 namespace cat {
@@ -11,8 +11,7 @@ namespace kf {
 
 class Visualizer {
 public:
-    Visualizer(const SurfaceData& data, const cv::Mat& colorMap,
-               const Volume& volume);
+    Visualizer(const Frame& frame, const Volume& volume);
 
     void visualizeDepthMap();
     void visualizeNormalMap();
@@ -23,8 +22,7 @@ private:
     cv::viz::Viz3d vizWindow;
     cv::viz::WCloud vertexCloud;
 
-    SurfaceData data;
-    cv::Mat colorMap;
+    Frame frame;
     Volume volume;
 };
 

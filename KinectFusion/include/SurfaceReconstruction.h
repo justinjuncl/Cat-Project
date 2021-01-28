@@ -2,7 +2,9 @@
 #define SURFACERECONSTRUCTION_H
 
 #include <vector>
+
 #include "Util.h"
+#include "Frame.h"
 
 namespace cat {
 
@@ -62,11 +64,7 @@ private:
 
 };
 
-void computeSurfaceReconstruction(const cv::Affine3f& pose, const cv::Mat& depthMap,
-                                  const CameraIntrinsics& camIntrinsics,
-                                  Volume& volume);
-cv::Point2i nearestNeighbourProject(const CameraIntrinsics& camIntrinsics, const cv::Point3f& cameraCoord);
-float calculateLambda(const CameraIntrinsics& camIntrinsics, const cv::Point2i& uv);
+void computeSurfaceReconstruction(const Frame& frame, Volume& volume);
 
 } // namespace kf
     

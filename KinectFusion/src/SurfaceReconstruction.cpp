@@ -1,14 +1,23 @@
-#include "Util.h"
 #include "SurfaceReconstruction.h"
 
 namespace cat {
 
 namespace kf {
 
-void computeSurfaceReconstruction(const cv::Affine3f& pose, const cv::Mat& depthMap,
-                                  const CameraIntrinsics& camIntrinsics,
-                                  Volume& volume) {
-    cv::Affine3f poseInv = pose.inv();
+cv::Point2i nearestNeighbourProject(const CameraIntrinsics& camIntrinsics, const cv::Point3f& cameraCoord) {
+    return cv::Point2i(round(cameraCoord.x / cameraCoord.z * camIntrinsics.fx + camIntrinsics.cx),
+                       round(cameraCoord.y / cameraCoord.z * camIntrinsics.fy + camIntrinsics.cy));
+}
+
+float calculateLambda(const CameraIntrinsics& camIntrinsics, const cv::Point2i& uv) {
+    cv::Point3f lambdaVector = cv::Point3f((uv.x - camIntrinsics.cx) / camIntrinsics.fx,
+                                           (uv.y - camIntrinsics.cy) / camIntrinsics.fy,
+                                           1.0f);
+    return cv::norm(lambdaVector);
+}
+
+void computeSurfaceReconstruction(const Frame& frame, Volume& volume) {
+    cv::Affine3f poseInv = frame.pose.inv();
 
     for (size_t z = 0; z < volume.params.size.z; ++z) {
         for (size_t y = 0; y < volume.params.size.y; ++y) {
@@ -19,12 +28,12 @@ void computeSurfaceReconstruction(const cv::Affine3f& pose, const cv::Mat& depth
 
                 if (pCameraCoordinate.z <= 0) continue;
 
-                cv::Point2i uv = nearestNeighbourProject(camIntrinsics, pCameraCoordinate);
+                cv::Point2i uv = nearestNeighbourProject(frame.camIntrinsics, pCameraCoordinate);
 
-                if (uv.x < 0 || uv.x >= camIntrinsics.width || uv.y < 0 || uv.y >= camIntrinsics.height) continue;
+                if (uv.x < 0 || uv.x >= frame.camIntrinsics.width || uv.y < 0 || uv.y >= frame.camIntrinsics.height) continue;
 
-                float lambda = calculateLambda(camIntrinsics, uv);
-                float depth = depthMap.at<float>(uv.y, uv.x);
+                float lambda = calculateLambda(frame.camIntrinsics, uv);
+                float depth = frame.depthMap.at<float>(uv.y, uv.x);
 
                 if (depth <= 0) continue;
 
@@ -45,20 +54,6 @@ void computeSurfaceReconstruction(const cv::Affine3f& pose, const cv::Mat& depth
             }
         }
     }
-
-    std::cout << "Surface Reconstruction Complete" << std::endl;
-}
-
-cv::Point2i nearestNeighbourProject(const CameraIntrinsics& camIntrinsics, const cv::Point3f& cameraCoord) {
-    return cv::Point2i(round(cameraCoord.x / cameraCoord.z * camIntrinsics.fx + camIntrinsics.cx),
-                       round(cameraCoord.y / cameraCoord.z * camIntrinsics.fy + camIntrinsics.cy));
-}
-
-float calculateLambda(const CameraIntrinsics& camIntrinsics, const cv::Point2i& uv) {
-    cv::Point3f lambdaVector = cv::Point3f((uv.x - camIntrinsics.cx) / camIntrinsics.fx,
-                                           (uv.y - camIntrinsics.cy) / camIntrinsics.fy,
-                                           1.0f);
-    return cv::norm(lambdaVector);
 }
 
 } // namespace kf
