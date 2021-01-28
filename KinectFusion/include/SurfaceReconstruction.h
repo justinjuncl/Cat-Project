@@ -12,7 +12,7 @@ struct Voxel {
     float tsdf;
     int weight;
 
-    Voxel(float tsdf = -1.0f, int weight = 0): tsdf(tsdf), weight(weight) {};
+    Voxel(float tsdf = 1.0f, int weight = 0): tsdf(tsdf), weight(weight) {};
 };
 
 struct VolumeParams {

@@ -23,6 +23,15 @@ float sampleVoxel(Volume& volume, const cv::Point3f& grid) {
          + volume.getVoxel(voxel.x+1, voxel.y,   voxel.z+1).tsdf * (a)*(1-b)*(c)
          + volume.getVoxel(voxel.x+1, voxel.y+1, voxel.z  ).tsdf * (a)*(b)*(1-c)
          + volume.getVoxel(voxel.x+1, voxel.y+1, voxel.z+1).tsdf * (a)*(b)*(c);
+
+    // return ( volume.getVoxel(voxel.x,   voxel.y,   voxel.z  ).tsdf == 1.0f ? 0.0f : volume.getVoxel(voxel.x,   voxel.y,   voxel.z  ).tsdf) * (1-a)*(1-b)*(1-c)
+    //      + ( volume.getVoxel(voxel.x,   voxel.y,   voxel.z+1).tsdf == 1.0f ? 0.0f : volume.getVoxel(voxel.x,   voxel.y,   voxel.z+1).tsdf) * (1-a)*(1-b)*(c)
+    //      + ( volume.getVoxel(voxel.x,   voxel.y+1, voxel.z  ).tsdf == 1.0f ? 0.0f : volume.getVoxel(voxel.x,   voxel.y+1, voxel.z  ).tsdf) * (1-a)*(b)*(1-c)
+    //      + ( volume.getVoxel(voxel.x,   voxel.y+1, voxel.z+1).tsdf == 1.0f ? 0.0f : volume.getVoxel(voxel.x,   voxel.y+1, voxel.z+1).tsdf) * (1-a)*(b)*(c)
+    //      + ( volume.getVoxel(voxel.x+1, voxel.y,   voxel.z  ).tsdf == 1.0f ? 0.0f : volume.getVoxel(voxel.x+1, voxel.y,   voxel.z  ).tsdf) * (a)*(1-b)*(1-c)
+    //      + ( volume.getVoxel(voxel.x+1, voxel.y,   voxel.z+1).tsdf == 1.0f ? 0.0f : volume.getVoxel(voxel.x+1, voxel.y,   voxel.z+1).tsdf) * (a)*(1-b)*(c)
+    //      + ( volume.getVoxel(voxel.x+1, voxel.y+1, voxel.z  ).tsdf == 1.0f ? 0.0f : volume.getVoxel(voxel.x+1, voxel.y+1, voxel.z  ).tsdf) * (a)*(b)*(1-c)
+    //      + ( volume.getVoxel(voxel.x+1, voxel.y+1, voxel.z+1).tsdf == 1.0f ? 0.0f : volume.getVoxel(voxel.x+1, voxel.y+1, voxel.z+1).tsdf) * (a)*(b)*(c);
 }
 
 bool outOfBoundsRay(const cv::Point3f& minVoxel, const cv::Point3f& maxVoxel,
@@ -64,26 +73,26 @@ cv::Vec3f calculateNormal(Volume& volume, const cv::Point3f& pLocal) {
     cv::Point3f temp;
 
     temp = pLocal;
-    temp.x -= 1.0f;
+    temp.x += 1.0f;
     float tsdf_x1 = sampleVoxel(volume, temp);
     temp = pLocal;
-    temp.x += 1.0f;
+    temp.x -= 1.0f;
     float tsdf_x2 = sampleVoxel(volume, temp);
     n[0] = tsdf_x2 - tsdf_x1;
 
     temp = pLocal;
-    temp.y -= 1.0f;
+    temp.y += 1.0f;
     float tsdf_y1 = sampleVoxel(volume, temp);
     temp = pLocal;
-    temp.y += 1.0f;
+    temp.y -= 1.0f;
     float tsdf_y2 = sampleVoxel(volume, temp);
     n[1] = tsdf_y2 - tsdf_y1;
 
     temp = pLocal;
-    temp.z -= 1.0f;
+    temp.z += 1.0f;
     float tsdf_z1 = sampleVoxel(volume, temp);
     temp = pLocal;
-    temp.z += 1.0f;
+    temp.z -= 1.0f;
     float tsdf_z2 = sampleVoxel(volume, temp);
     n[2] = tsdf_z2 - tsdf_z1;
 
@@ -121,15 +130,17 @@ SurfaceData computeSurfacePrediction(const cv::Affine3f& pose,
 
             if (outOfBoundsRay(minVoxelPosition, maxVoxelPosition, rayOrigin, rayDirection, t)) continue;
 
+            t += deltaT; // Increment one step for trilinear sampling
+
             cv::Point3f pLocal = (rayOrigin + (rayDirection * t) - volumePosition) / volume.params.scale;
 
             float currTSDF = sampleVoxel(volume, pLocal);
             // float currTSDF = volume.getVoxel(round(pLocal.x), round(pLocal.y), round(pLocal.z)).tsdf;
 
-            for (t += deltaT; t < maxT; t += deltaT) {
-                pLocal = (rayOrigin + (rayDirection * t) - volumePosition) / volume.params.scale;
+            for (; t < maxT; t += deltaT) {
+                pLocal = (rayOrigin + (rayDirection * (t + deltaT)) - volumePosition) / volume.params.scale;
 
-                if (outOfBounds(volume, pLocal)) continue;
+                if (outOfBoundsNeighbor(volume, pLocal)) break;
 
                 float prevTSDF = currTSDF;
                 currTSDF = sampleVoxel(volume, pLocal);
@@ -137,13 +148,11 @@ SurfaceData computeSurfacePrediction(const cv::Affine3f& pose,
 
                 if (prevTSDF < 0.0f && currTSDF > 0.0f) break;
                 if (prevTSDF > 0.0f && currTSDF < 0.0f) {
-                    float tStar = t + deltaT * prevTSDF / (prevTSDF - currTSDF);
+                    float tStar = t - deltaT * prevTSDF / (currTSDF - prevTSDF);
                     cv::Vec3f q = rayOrigin + (rayDirection * tStar);
                     cv::Vec3f qLocal = (q - volumePosition) / volume.params.scale;
 
-                    // std::cout << "(" << x << " " << y << ") " << q << std::endl;
-
-                    if (outOfBoundsNeighbor(volume, pLocal)) break;
+                    if (outOfBoundsNeighbor(volume, qLocal)) break;
 
                     vertexMap.at<cv::Vec3f>(y, x) = q;
                     normalMap.at<cv::Vec3f>(y, x) = calculateNormal(volume, qLocal);
@@ -157,7 +166,6 @@ SurfaceData computeSurfacePrediction(const cv::Affine3f& pose,
     SurfaceData data;
     data.vertexMap = vertexMap;
     data.normalMap = normalMap;
-    // data.normalMap = createNormalMap(vertexMap);
 
     return data; 
 }
