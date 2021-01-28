@@ -12,7 +12,7 @@ namespace kf {
 
 SurfaceData computeSurfacePrediction(const cv::Affine3f& pose,
                                      const CameraIntrinsics& camIntrinsics,
-                                     Volume& volume);
+                                     const Volume& volume);
 
 } // namespace kf
     

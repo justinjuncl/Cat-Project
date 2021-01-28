@@ -6,7 +6,7 @@ namespace cat {
 
 namespace kf {
 
-float sampleVoxel(Volume& volume, const cv::Point3f& grid) {
+float sampleVoxel(const Volume& volume, const cv::Point3f& grid) {
     cv::Point3i voxel = cv::Point3i(static_cast<int>(grid.x + 0.5f) - 1,
                                     static_cast<int>(grid.y + 0.5f) - 1,
                                     static_cast<int>(grid.z + 0.5f) - 1);
@@ -68,7 +68,7 @@ inline bool outOfBoundsNeighbor(const Volume& volume, const cv::Point3f& pLocal)
             pLocal.z <= 1.0f || pLocal.z >= volume.params.size.z - 2.0f);
 }
 
-cv::Vec3f calculateNormal(Volume& volume, const cv::Point3f& pLocal) {
+cv::Vec3f calculateNormal(const Volume& volume, const cv::Point3f& pLocal) {
     cv::Vec3f n;
     cv::Point3f temp;
 
@@ -106,7 +106,7 @@ cv::Vec3f calculateNormal(Volume& volume, const cv::Point3f& pLocal) {
 
 SurfaceData computeSurfacePrediction(const cv::Affine3f& pose,
                                      const CameraIntrinsics& camIntrinsics,
-                                     Volume& volume) {
+                                     const Volume& volume) {
     cv::Mat vertexMap(camIntrinsics.height, camIntrinsics.width, CV_32FC3);
     cv::Mat normalMap(camIntrinsics.height, camIntrinsics.width, CV_32FC3);
 

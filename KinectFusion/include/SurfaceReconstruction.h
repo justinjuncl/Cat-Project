@@ -49,6 +49,10 @@ public:
         return voxelData[x + y * params.size.x + z * params.size.y * params.size.x];
     }
 
+    Voxel getVoxel(const size_t x, const size_t y, const size_t z) const {
+        return voxelData[x + y * params.size.x + z * params.size.y * params.size.x];
+    }
+
 public:
     const VolumeParams params;
 
