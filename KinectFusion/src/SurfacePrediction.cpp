@@ -105,8 +105,8 @@ cv::Vec3f calculateNormal(const Volume& volume, const cv::Point3f& pLocal) {
 }
 
 Frame computeSurfacePrediction(const Frame& frame, const Volume& volume) {
-    cv::Mat vertexMap(frame.camIntrinsics.height, frame.camIntrinsics.width, CV_32FC3);
-    cv::Mat normalMap(frame.camIntrinsics.height, frame.camIntrinsics.width, CV_32FC3);
+    cv::Mat vertexMap(frame.camIntrinsics.height, frame.camIntrinsics.width, CV_32FC3, cv::Vec3f(M_INFINITY, M_INFINITY, M_INFINITY));
+    cv::Mat normalMap(frame.camIntrinsics.height, frame.camIntrinsics.width, CV_32FC3, cv::Vec3f(M_INFINITY, M_INFINITY, M_INFINITY));
 
     cv::Vec3f volumePosition = cv::Vec3f(volume.getPosition());
     cv::Point3f minVoxelPosition = volume.getVoxelPosition(0, 0, 0);

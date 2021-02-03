@@ -1,12 +1,14 @@
 #include "Camera.h"
 
-#include <cstdio>
+#include <fstream>
+#include <sstream>
+#include <iomanip>
 
 namespace cat {
 
 namespace kf {
 
-CameraIntrinsics loadCameraIntrinsics(const char *fileName) {
+CameraIntrinsics loadCameraIntrinsics(const std::string fileName) {
     CameraIntrinsics camIntrinsics;
     std::ifstream is(fileName);
 
@@ -40,28 +42,49 @@ cv::Mat processDepthMap(const cv::Mat& preDepthMap) {
     return depthMap;
 }
 
-Camera::Camera(const char *depthFileName, const char *colorFileName,
-               const char *camIntrinsicsFileName)
-             : frameIndex(-1), depthFileName(depthFileName), colorFileName(colorFileName) {
+Camera::Camera(const std::string datasetDirectory,
+               const std::string camIntrinsicsFileName)
+             : frameIndex(2), datasetDirectory(datasetDirectory) {
     camIntrinsics = loadCameraIntrinsics(camIntrinsicsFileName);
+    setupFrames();
 }
 
 Frame Camera::getFrame() {
-    frameIndex++;
+    std::cout << "FRAME #" << frameIndex << " @" << std::fixed << std::setw( 11 ) << std::setprecision( 6 ) << timestampsDepth[frameIndex] << std::endl << std::endl;
 
-    char fileName[100];
-
-    sprintf(fileName, depthFileName, frameIndex);
-    depthMap = cv::imread(fileName, cv::IMREAD_UNCHANGED);
-
-    sprintf(fileName, colorFileName, frameIndex);
-    colorMap = cv::imread(fileName, cv::IMREAD_COLOR);
-
-    std::cout << "FRAME #" << frameIndex << std::endl << std::endl;
+    depthMap = cv::imread(fileNamesDepth[frameIndex].c_str(), cv::IMREAD_UNCHANGED);
+    colorMap = cv::imread(fileNamesColor[frameIndex].c_str(), cv::IMREAD_COLOR);
 
     depthMap = processDepthMap(depthMap);
 
+    frameIndex++;
+
     return Frame(depthMap, colorMap, camIntrinsics);
+}
+
+
+bool Camera::canGetFrame() {
+    return frameIndex < fileNamesDepth.size();
+}
+
+void Camera::setupFrames() {
+    // cd datasetDirectory && python associate.py depth.txt rgb.txt > associate.txt
+    std::ifstream associateFile(datasetDirectory + "/associate.txt");
+
+    double timestampDepth, timestampColor;
+    std::string fileNameDepth, fileNameColor;
+
+    for (std::string line; std::getline(associateFile, line);) {
+        std::stringstream ss(line);
+        ss >> timestampDepth >> fileNameDepth >> timestampColor >> fileNameColor;
+
+        timestampsDepth.push_back(timestampDepth);
+        fileNamesDepth.push_back(datasetDirectory + "/" + fileNameDepth);
+        timestampsColor.push_back(timestampColor);
+        fileNamesColor.push_back(datasetDirectory + "/" + fileNameColor);
+    }
+
+    associateFile.close();
 }
 
 } // namespace kf

@@ -17,13 +17,6 @@ struct Voxel {
     Voxel(float tsdf = 1.0f, int weight = 0): tsdf(tsdf), weight(weight) {};
 };
 
-struct VolumeParams {
-    float        scale = 5.0f / 128.0f;
-    cv::Point3i  size = cv::Point3i(128, 128, 128); 
-    float        mu = 5.0f / 32.0f;
-    int          maxWeight = 128;
-};
-
 class Volume {
 public:
     Volume(VolumeParams& params, cv::Point3f position) : params(params), position(position) {

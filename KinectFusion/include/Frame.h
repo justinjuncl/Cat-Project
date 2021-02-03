@@ -21,7 +21,7 @@ public:
     cv::Mat normalMap;
 
     cv::Affine3f pose;
-    CameraIntrinsics& camIntrinsics;
+    CameraIntrinsics camIntrinsics;
 };
 
 } // namespace kf

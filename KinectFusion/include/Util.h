@@ -2,7 +2,6 @@
 #define UTIL_H
 
 #include <iostream>
-#include <fstream>
 #include <cmath>
 
 #include <opencv2/opencv.hpp>
@@ -31,6 +30,19 @@ struct BilateralFilterParams {
     int     d = 7;
     double  sigmaColor = 4.0;
     double  sigmaSpace = 0.25;
+};
+
+struct VolumeParams {
+    float        scale = 5.0f / 256.0f;
+    cv::Point3i  size = cv::Point3i(256, 256, 256); 
+    float        mu = 5.0f / 64.0f;
+    int          maxWeight = 128;
+};
+
+struct ICPParams {
+    size_t iterations = 10;
+    float distanceThreshold = 0.1f;
+    float angleThreshold = 0.8f;
 };
 
 } // namespace kf

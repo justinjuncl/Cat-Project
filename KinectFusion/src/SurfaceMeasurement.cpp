@@ -11,9 +11,13 @@ cv::Mat createVertexMap(const cv::Mat& depthMap, const CameraIntrinsics& camIntr
     for (size_t y = 0; y < vertexMap.rows; ++y) {
         for (size_t x = 0; x < vertexMap.cols; ++x) {
             depth = depthMap.at<float>(y, x);
-            vertexMap.at<cv::Vec3f>(y, x) = cv::Vec3f(depth * (x - camIntrinsics.cx) / camIntrinsics.fx,
-                                                      depth * (y - camIntrinsics.cy) / camIntrinsics.fy,
-                                                      depth);
+            if (isnan(depth)) {
+                vertexMap.at<cv::Vec3f>(y, x) = cv::Vec3f(M_INFINITY, M_INFINITY, M_INFINITY);
+            } else {
+                vertexMap.at<cv::Vec3f>(y, x) = cv::Vec3f(depth * (x - camIntrinsics.cx) / camIntrinsics.fx,
+                                                          depth * (y - camIntrinsics.cy) / camIntrinsics.fy,
+                                                          depth);
+            }
         }
     }
 
