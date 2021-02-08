@@ -18,14 +18,14 @@ void pipeline(cat::kf::Frame& currFrame, cat::kf::Frame& prevFrame, cat::kf::Vol
     std::cout << "Surface Measurement" << std::endl;
     cat::kf::computeSurfaceMeasurement(currFrame, filterParams);
 
-    std::cout << "Pose Estimation" << std::endl;
-    cat::kf::computePoseEstimation(currFrame, prevFrame, icpParams);
-
     std::cout << "Surface Reconstruction" << std::endl;
     cat::kf::computeSurfaceReconstruction(currFrame, volume);
 
     std::cout << "Surface Prediction" << std::endl << std::endl;
     prevFrame = cat::kf::computeSurfacePrediction(currFrame, volume);
+
+    std::cout << "Pose Estimation" << std::endl;
+    cat::kf::computePoseEstimation(currFrame, prevFrame, icpParams);
 }
 
 int main(int, char**) {
@@ -57,6 +57,7 @@ int main(int, char**) {
         vizNormalMap.convertTo(vizNormalMap, CV_8UC3, 255);
         cv::cvtColor(vizNormalMap, vizNormalMap, cv::COLOR_BGR2RGB);
         cv::imshow(std::to_string(++i) + " Normal 2D", vizNormalMap);
+        cv::waitKey();
     }
 
     cv::viz::Viz3d vizWindow("Path Viz");

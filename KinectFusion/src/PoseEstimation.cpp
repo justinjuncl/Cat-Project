@@ -39,14 +39,14 @@ bool solveICP(const Frame& currFrame, const Frame& prevFrame, const ICPParams& i
 
             if (isnan(prevVertex[0]) || isnan(prevNormal[0])) continue;
 
-            cv::Vec3d prevVertexGlobal = prevFramePose * prevVertex;
-            cv::Vec3d prevNormalGlobal = prevFramePose.rotation() * prevNormal;
+            cv::Vec3d prevVertexGlobal = prevVertex; // prevFramePose * prevVertex;
+            cv::Vec3d prevNormalGlobal = prevNormal; // prevFramePose.rotation() * prevNormal;
 
             if (!(cv::norm(currVertexGlobal - prevVertexGlobal) <= icpParams.distanceThreshold &&
                   currNormalGlobal.dot(prevNormalGlobal) >= icpParams.angleThreshold)) continue;
 
             cv::Mat A_T;
-            cv::vconcat(currVertexGlobal.cross(prevNormalGlobal), prevNormalGlobal, A_T);
+            cv::vconcat(-currVertexGlobal.cross(prevNormalGlobal), prevNormalGlobal, A_T);
 
             double b = prevNormalGlobal.dot(prevVertexGlobal - currVertexGlobal);
 
@@ -80,15 +80,15 @@ cv::Affine3f poseFromSolution(float *x) {
     float beta  = x[1];
     float gamma = x[2];
 
-    float data[16] = { 1.0f,     alpha * beta - gamma, alpha * gamma + beta, x[3],
-                      gamma, alpha * beta * gamma + 1, beta * gamma - alpha, x[4],
-                      -beta,                    alpha,                    1, x[5],
-                          0,                        0,                    0,    1};
+    // float data[16] = { 1.0f,     alpha * beta - gamma, alpha * gamma + beta, x[3],
+    //                   gamma, alpha * beta * gamma + 1, beta * gamma - alpha, x[4],
+    //                   -beta,                    alpha,                    1, x[5],
+    //                       0,                        0,                    0,    1};
 
-    // float data[16] = { 1.0f,  x[2], -x[1], x[3],
-    //                   -x[2],  1.0f,  x[0], x[4],
-    //                    x[1], -x[0],  1.0f, x[5],
-    //                    0.0f,  0.0f,  0.0f, 1.0f};
+    float data[16] = { 1.0f,  x[2], -x[1], x[3],
+                      -x[2],  1.0f,  x[0], x[4],
+                       x[1], -x[0],  1.0f, x[5],
+                       0.0f,  0.0f,  0.0f, 1.0f};
     return cv::Affine3f(data);
 }
 
