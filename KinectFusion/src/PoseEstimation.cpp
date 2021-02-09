@@ -12,8 +12,6 @@ bool solveICP(const Frame& currFrame, const Frame& prevFrame, const ICPParams& i
     cv::Affine3d prevFramePose = prevFrame.pose;
     cv::Affine3d prevFramePoseInv = prevFramePose.inv();
 
-    int count = 0;
-
     for (size_t y = 0; y < currFrame.vertexMap.rows; ++y) {
         for (size_t x = 0; x < currFrame.vertexMap.cols; ++x) {
             cv::Vec3d currVertex = currFrame.vertexMap.at<cv::Vec3f>(y, x); // Convert to double
@@ -52,39 +50,16 @@ bool solveICP(const Frame& currFrame, const Frame& prevFrame, const ICPParams& i
 
             SigmaA_T_A += A_T * A_T.t();
             SigmaA_T_b += A_T * b;
-
-            count++;
         }
     }
 
-    // std::cout << "SigmaA_T_A: " << std::endl
-    //           << SigmaA_T_A << std::endl << std::endl;
-    // std::cout << "SigmaA_T_b: " << std::endl
-    //           << SigmaA_T_b << std::endl << std::endl;
-
-    bool success = cv::Cholesky(SigmaA_T_A.ptr<double>(), SigmaA_T_A.step, SigmaA_T_A.cols,
-                                SigmaA_T_b.ptr<double>(), SigmaA_T_b.step, SigmaA_T_b.cols);
-
-    std::cout << "Cholesky: " << (success ? "Success" : "Fail") << " (" << count << "/"
-              << currFrame.vertexMap.rows * currFrame.vertexMap.cols << ")" << std::endl;
-
-    SigmaA_T_b.convertTo(x, CV_32F); // Solution is stored in SigmaA_T_b after calling cv::Cholesky
-
-    // std::cout << x << std::endl;
+    bool success = cv::solve(SigmaA_T_A, SigmaA_T_b, x, cv::DECOMP_CHOLESKY);
+    x.convertTo(x, CV_32F);
 
     return success;
 }
 
 cv::Affine3f poseFromSolution(float *x) {
-    float alpha = x[0];
-    float beta  = x[1];
-    float gamma = x[2];
-
-    // float data[16] = { 1.0f,     alpha * beta - gamma, alpha * gamma + beta, x[3],
-    //                   gamma, alpha * beta * gamma + 1, beta * gamma - alpha, x[4],
-    //                   -beta,                    alpha,                    1, x[5],
-    //                       0,                        0,                    0,    1};
-
     float data[16] = { 1.0f,  x[2], -x[1], x[3],
                       -x[2],  1.0f,  x[0], x[4],
                        x[1], -x[0],  1.0f, x[5],

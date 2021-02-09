@@ -44,7 +44,7 @@ cv::Mat processDepthMap(const cv::Mat& preDepthMap) {
 
 Camera::Camera(const std::string datasetDirectory,
                const std::string camIntrinsicsFileName)
-             : frameIndex(2), datasetDirectory(datasetDirectory) {
+             : frameIndex(0), datasetDirectory(datasetDirectory) {
     camIntrinsics = loadCameraIntrinsics(camIntrinsicsFileName);
     setupFrames();
 }
@@ -61,7 +61,6 @@ Frame Camera::getFrame() {
 
     return Frame(depthMap, colorMap, camIntrinsics);
 }
-
 
 bool Camera::canGetFrame() {
     return frameIndex < fileNamesDepth.size();

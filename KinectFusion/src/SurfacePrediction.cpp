@@ -1,6 +1,4 @@
-#include "Util.h"
 #include "SurfacePrediction.h"
-#include "SurfaceMeasurement.h"
 
 namespace cat {
 
@@ -151,6 +149,8 @@ Frame computeSurfacePrediction(const Frame& frame, const Volume& volume) {
                     cv::Vec3f qLocal = (q - volumePosition) / volume.params.scale;
 
                     if (outOfBoundsNeighbor(volume, qLocal)) break;
+
+                    // Store global Vertex & Normal
 
                     vertexMap.at<cv::Vec3f>(y, x) = q;
                     normalMap.at<cv::Vec3f>(y, x) = calculateNormal(volume, qLocal);

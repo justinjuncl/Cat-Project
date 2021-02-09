@@ -1,7 +1,8 @@
 #include "Util.h"
 
-#include "Frame.h"
 #include "Camera.h"
+#include "Frame.h"
+#include "Volume.h"
 
 #include "SurfaceMeasurement.h"
 #include "PoseEstimation.h"
@@ -21,10 +22,10 @@ void pipeline(cat::kf::Frame& currFrame, cat::kf::Frame& prevFrame, cat::kf::Vol
     std::cout << "Surface Reconstruction" << std::endl;
     cat::kf::computeSurfaceReconstruction(currFrame, volume);
 
-    std::cout << "Surface Prediction" << std::endl << std::endl;
+    std::cout << "Surface Prediction" << std::endl;
     prevFrame = cat::kf::computeSurfacePrediction(currFrame, volume);
 
-    std::cout << "Pose Estimation" << std::endl;
+    std::cout << "Pose Estimation" << std::endl << std::endl;
     cat::kf::computePoseEstimation(currFrame, prevFrame, icpParams);
 }
 
@@ -52,59 +53,17 @@ int main(int, char**) {
 
         path.push_back(currFrame.pose);
 
-        cv::Mat vizNormalMap;
-        vizNormalMap = (prevFrame.normalMap + cv::Scalar::all(1.0f)) * 0.5f;
-        vizNormalMap.convertTo(vizNormalMap, CV_8UC3, 255);
-        cv::cvtColor(vizNormalMap, vizNormalMap, cv::COLOR_BGR2RGB);
-        cv::imshow(std::to_string(++i) + " Normal 2D", vizNormalMap);
-        cv::waitKey();
+        i++;
     }
 
-    cv::viz::Viz3d vizWindow("Path Viz");
-
-    std::vector<cv::Point3f> volumeCloudData;
-    std::vector<cv::Vec3b> volumeCloudColorData;
-    cv::Vec3b red(0, 0, 255);
-    cv::Vec3b green(0, 255, 0);
-
-    for (size_t z = 0; z < volume.params.size.z; ++z) {
-        for (size_t y = 0; y < volume.params.size.y; ++y) {
-            for (size_t x = 0; x < volume.params.size.x; ++x) {
-                float tsdf = volume.getVoxel(x, y, z).tsdf;
-                if (-1.0f < tsdf && tsdf < 1.0f) {
-                    float t = (tsdf + 1.0f) *  0.5f;
-                    t = std::min(std::max(t, 0.0f), 1.0f);
-                    cv::Vec3b color = t * green + (1 - t) * red;
-
-                    cv::Point3f voxel = volume.getVoxelPosition(x, y, z);
-                    // voxel.y *= -1.0f;
-                    // voxel.z *= -1.0f;
-
-                    volumeCloudData.push_back(voxel);
-                    volumeCloudColorData.push_back(color);
-                }
-            }
-        }
-    }
-    cv::viz::WCloud volumeCloud(volumeCloudData, volumeCloudColorData);
-    
-    cv::Matx33d K = cv::Matx33d(prevFrame.camIntrinsics.fx, 0, prevFrame.camIntrinsics.cx,
-                                0, prevFrame.camIntrinsics.fy, prevFrame.camIntrinsics.cy,
-                                0,                          0,                          1);
-    cv::viz::WTrajectoryFrustums frustrums(path, K, 0.2);
-
-    vizWindow.showWidget("Trajectory", cv::viz::WTrajectory(path, cv::viz::WTrajectory::PATH, 0.2, cv::viz::Color::orange()));
-    vizWindow.showWidget("Frustrums", frustrums);
-    vizWindow.showWidget("Volume Cloud", volumeCloud);
-    vizWindow.spin(); 
-
-    // cat::kf::Visualizer viz(prevFrame, volume);
+    cat::kf::Visualizer viz(prevFrame, volume);
     // cv::imshow("Depth 2D Viz", frame.depthMap);
     // cv::imshow("Color", frame.colorMap);
     // viz.visualizeDepthMap();
     // viz.visualizeNormalMap();
     // viz.visualizeVertexCloud();
-    // viz.visualizeVolume();
+    viz.showTrajectory(path);
+    viz.visualizeVolume();
 
     return 0;
 }

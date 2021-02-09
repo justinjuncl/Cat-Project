@@ -3,7 +3,7 @@
 
 #include "Util.h"
 #include "Frame.h"
-#include "SurfaceReconstruction.h"
+#include "Volume.h"
 
 namespace cat {
 

@@ -45,8 +45,8 @@ void Visualizer::visualizeVolume() {
                     cv::Vec3b color = t * green + (1 - t) * red;
 
                     cv::Point3f voxel = volume.getVoxelPosition(x, y, z);
-                    voxel.y *= -1.0f;
-                    voxel.z *= -1.0f;
+                    // voxel.y *= -1.0f;
+                    // voxel.z *= -1.0f;
 
                     volumeCloudData.push_back(voxel);
                     volumeCloudColorData.push_back(color);
@@ -57,6 +57,15 @@ void Visualizer::visualizeVolume() {
     cv::viz::WCloud volumeCloud(volumeCloudData, volumeCloudColorData);
     vizWindow.showWidget("Volume Cloud", volumeCloud);
     vizWindow.spin();
+}
+
+void Visualizer::showTrajectory(const std::vector<cv::Affine3f>& path) {
+    cv::Matx33d K = cv::Matx33d(frame.camIntrinsics.fx, 0.0, frame.camIntrinsics.cx,
+                                0.0, frame.camIntrinsics.fy, frame.camIntrinsics.cy,
+                                0.0,                    0.0,                    1.0); 
+
+    vizWindow.showWidget("Trajectory", cv::viz::WTrajectory(path, cv::viz::WTrajectory::PATH, 0.2, cv::viz::Color::orange()));
+    vizWindow.showWidget("Frustrums", cv::viz::WTrajectoryFrustums(path, K, 0.2));
 }
 
 } // namespace kf

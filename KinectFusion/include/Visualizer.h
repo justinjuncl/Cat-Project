@@ -3,7 +3,7 @@
 
 #include "Util.h"
 #include "Frame.h"
-#include "SurfaceReconstruction.h"
+#include "Volume.h"
 
 namespace cat {
 
@@ -17,6 +17,8 @@ public:
     void visualizeNormalMap();
     void visualizeVertexCloud();
     void visualizeVolume();
+
+    void showTrajectory(const std::vector<cv::Affine3f>& path);
 
 private:
     cv::viz::Viz3d vizWindow;

@@ -7,11 +7,7 @@ namespace cat {
 
 namespace kf {
 
-class Frame {
-public:
-    Frame(const cv::Mat& depthMap, const cv::Mat& colorMap, CameraIntrinsics& camIntrinsics);
-    
-public:
+struct Frame {
     cv::Mat depthMap;
     cv::Mat colorMap;
 
@@ -22,6 +18,12 @@ public:
 
     cv::Affine3f pose;
     CameraIntrinsics camIntrinsics;
+
+    Frame(const cv::Mat& depthMap, const cv::Mat& colorMap,
+          const CameraIntrinsics& camIntrinsics)
+        : depthMap(depthMap), colorMap(colorMap),
+          camIntrinsics(camIntrinsics) {
+    };
 };
 
 } // namespace kf
