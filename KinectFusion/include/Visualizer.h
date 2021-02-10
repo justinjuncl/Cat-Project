@@ -17,6 +17,7 @@ public:
     void visualizeNormalMap();
     void visualizeVertexCloud();
     void visualizeVolume();
+    void visualizeMesh(const std::string fileName);
 
     void showTrajectory(const std::vector<cv::Affine3f>& path);
 

@@ -5,7 +5,7 @@ namespace cat {
 namespace kf {
 
 Visualizer::Visualizer(const Frame& frame, const Volume& volume) :
-    vizWindow(cv::viz::Viz3d("Point Cloud Viz")),
+    vizWindow(cv::viz::Viz3d("KinectFusion Visualizer")),
     vertexCloud(cv::viz::WCloud(frame.vertexMap, frame.colorMap)),
     frame(frame), volume(volume) {
 }
@@ -57,6 +57,11 @@ void Visualizer::visualizeVolume() {
     cv::viz::WCloud volumeCloud(volumeCloudData, volumeCloudColorData);
     vizWindow.showWidget("Volume Cloud", volumeCloud);
     vizWindow.spin();
+}
+
+void Visualizer::visualizeMesh(const std::string fileName) {
+    vizWindow.showWidget("Mesh", cv::viz::WMesh(cv::viz::Mesh::load(fileName, cv::viz::Mesh::LOAD_OBJ)));
+    vizWindow.spin();;
 }
 
 void Visualizer::showTrajectory(const std::vector<cv::Affine3f>& path) {

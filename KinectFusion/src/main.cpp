@@ -10,6 +10,7 @@
 #include "SurfacePrediction.h"
 
 #include "Visualizer.h"
+#include "Exporter.h"
 
 cat::kf::BilateralFilterParams filterParams;
 cat::kf::VolumeParams volumeParams;
@@ -30,7 +31,7 @@ void pipeline(cat::kf::Frame& currFrame, cat::kf::Frame& prevFrame, cat::kf::Vol
 }
 
 int main(int, char**) {
-    cat::kf::Camera camera("/Users/justinjun/Downloads/rgbd_dataset_freiburg1_xyz", "res/intrinsics.txt");
+    cat::kf::Camera camera("res/rgbd_dataset_freiburg1_xyz_trunc_50", "res/intrinsics.txt");
 
     cat::kf::Volume volume(volumeParams);
 
@@ -56,14 +57,18 @@ int main(int, char**) {
         i++;
     }
 
+    std::cout << "Exporting " << std::endl;
+    cat::kf::Exporter::exportMCMesh(volume, "out/mesh.obj");
+
     cat::kf::Visualizer viz(prevFrame, volume);
-    // cv::imshow("Depth 2D Viz", frame.depthMap);
-    // cv::imshow("Color", frame.colorMap);
-    // viz.visualizeDepthMap();
-    // viz.visualizeNormalMap();
-    // viz.visualizeVertexCloud();
-    viz.showTrajectory(path);
-    viz.visualizeVolume();
+    // // cv::imshow("Depth 2D Viz", frame.depthMap);
+    // // cv::imshow("Color", frame.colorMap);
+    // // viz.visualizeDepthMap();
+    // // viz.visualizeNormalMap();
+    // // viz.visualizeVertexCloud();
+    // viz.showTrajectory(path);
+    // viz.visualizeVolume();
+    viz.visualizeMesh("out/mesh.obj");
 
     return 0;
 }
