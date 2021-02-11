@@ -19,7 +19,7 @@ struct Triangle {
 };
 
 cv::Point3f vertexInterp(const cv::Point3f& p1, const cv::Point3f& p2, float v1, float v2) {
-    return (p1 + (-v1 / (v2 - v1 + 1e-15f)) * (p2 - p1));
+    return (p1 + (-v1 / (v2 - v1)) * (p2 - p1));
 }
 
 void Exporter::exportMCMesh(const Volume& volume, const std::string fileName) {
@@ -32,13 +32,13 @@ void Exporter::exportMCMesh(const Volume& volume, const std::string fileName) {
         for (size_t y = 0; y < volume.params.size.y - 1; ++y) {
             for (size_t x = 0; x < volume.params.size.x - 1; ++x) {
                 grid[0].p = volume.getVoxelPosition(x,   y,   z  ); grid[0].v = volume.getVoxel(x,   y,   z  ).tsdf;
-                grid[1].p = volume.getVoxelPosition(x,   y,   z+1); grid[1].v = volume.getVoxel(x,   y,   z+1).tsdf;
-                grid[2].p = volume.getVoxelPosition(x,   y+1, z  ); grid[2].v = volume.getVoxel(x,   y+1, z  ).tsdf;
-                grid[3].p = volume.getVoxelPosition(x,   y+1, z+1); grid[3].v = volume.getVoxel(x,   y+1, z+1).tsdf;
-                grid[4].p = volume.getVoxelPosition(x+1, y,   z  ); grid[4].v = volume.getVoxel(x+1, y,   z  ).tsdf;
+                grid[1].p = volume.getVoxelPosition(x+1, y,   z  ); grid[1].v = volume.getVoxel(x+1, y,   z  ).tsdf;
+                grid[2].p = volume.getVoxelPosition(x+1, y+1, z  ); grid[2].v = volume.getVoxel(x+1, y+1, z  ).tsdf;
+                grid[3].p = volume.getVoxelPosition(x,   y+1, z  ); grid[3].v = volume.getVoxel(x,   y+1, z  ).tsdf;
+                grid[4].p = volume.getVoxelPosition(x,   y,   z+1); grid[4].v = volume.getVoxel(x,   y,   z+1).tsdf;
                 grid[5].p = volume.getVoxelPosition(x+1, y,   z+1); grid[5].v = volume.getVoxel(x+1, y,   z+1).tsdf;
-                grid[6].p = volume.getVoxelPosition(x+1, y+1, z  ); grid[6].v = volume.getVoxel(x+1, y+1, z  ).tsdf;
-                grid[7].p = volume.getVoxelPosition(x+1, y+1, z+1); grid[7].v = volume.getVoxel(x+1, y+1, z+1).tsdf;
+                grid[6].p = volume.getVoxelPosition(x+1, y+1, z+1); grid[6].v = volume.getVoxel(x+1, y+1, z+1).tsdf;
+                grid[7].p = volume.getVoxelPosition(x,   y+1, z+1); grid[7].v = volume.getVoxel(x,   y+1, z+1).tsdf;
 
                 cubeIndex = 0;
                 if (grid[0].v < 0.0f) cubeIndex |= 1;

@@ -43,7 +43,7 @@ int main(int, char**) {
     std::vector<cv::Affine3f> path;
 
     int i = 0;
-    while (camera.canGetFrame() && i < 5) {
+    while (camera.canGetFrame() && i < 1) {
         cat::kf::Frame currFrame = camera.getFrame();
 
         pipeline(currFrame, prevFrame, volume);

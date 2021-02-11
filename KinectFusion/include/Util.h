@@ -33,9 +33,9 @@ struct BilateralFilterParams {
 };
 
 struct VolumeParams {
-    float        scale = 5.0f / 128.0f;
-    cv::Point3i  size = cv::Point3i(128, 128, 128); 
-    float        mu = 5.0f / 32.0f;
+    float        scale = 5.0f / 256.0f;
+    cv::Point3i  size = cv::Point3i(256, 256, 256); 
+    float        mu = 5.0f / 64.0f;
     int          maxWeight = 128;
 };
 
