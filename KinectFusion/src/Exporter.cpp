@@ -18,19 +18,31 @@ struct Triangle {
     cv::Point3f p3;
 };
 
+struct TriangleNormal {
+    cv::Vec3f n1;
+    cv::Vec3f n2;
+    cv::Vec3f n3;
+};
+
 cv::Point3f vertexInterp(const cv::Point3f& p1, const cv::Point3f& p2, float v1, float v2) {
     return (p1 + (-v1 / (v2 - v1)) * (p2 - p1));
 }
 
+// Defined in SurfacePrediction.cpp
+cv::Vec3f calculateNormal(const Volume& volume, const cv::Point3f& pLocal);
+
 void Exporter::exportMCMesh(const Volume& volume, const std::string fileName) {
     std::vector<Triangle> faces;
+    std::vector<TriangleNormal> normals;
     Grid grid[8];
     cv::Point3f vertexList[12];
     int cubeIndex;
 
-    for (size_t z = 0; z < volume.params.size.z - 1; ++z) {
-        for (size_t y = 0; y < volume.params.size.y - 1; ++y) {
-            for (size_t x = 0; x < volume.params.size.x - 1; ++x) {
+    cv::Point3f volumePosition = volume.getPosition();
+
+    for (size_t z = 1; z < volume.params.size.z - 2; ++z) {
+        for (size_t y = 1; y < volume.params.size.y - 2; ++y) {
+            for (size_t x = 1; x < volume.params.size.x - 2; ++x) {
                 grid[0].p = volume.getVoxelPosition(x,   y,   z  ); grid[0].v = volume.getVoxel(x,   y,   z  ).tsdf;
                 grid[1].p = volume.getVoxelPosition(x+1, y,   z  ); grid[1].v = volume.getVoxel(x+1, y,   z  ).tsdf;
                 grid[2].p = volume.getVoxelPosition(x+1, y+1, z  ); grid[2].v = volume.getVoxel(x+1, y+1, z  ).tsdf;
@@ -83,6 +95,14 @@ void Exporter::exportMCMesh(const Volume& volume, const std::string fileName) {
                         vertexList[triTable[cubeIndex][i+1]],
                         vertexList[triTable[cubeIndex][i+2]]
                     });
+                    normals.push_back({
+                        calculateNormal(volume, (vertexList[triTable[cubeIndex][i  ]]
+                                                 - volumePosition) / volume.params.scale),
+                        calculateNormal(volume, (vertexList[triTable[cubeIndex][i+1]]
+                                                 - volumePosition) / volume.params.scale),
+                        calculateNormal(volume, (vertexList[triTable[cubeIndex][i+2]]
+                                                 - volumePosition) / volume.params.scale),
+                    });
                 }
             }
         }
@@ -101,9 +121,22 @@ void Exporter::exportMCMesh(const Volume& volume, const std::string fileName) {
         os << "v " << triangle.p3.x << " " << -triangle.p3.y << " " << -triangle.p3.z << std::endl;
     }
 
-    for (size_t i = 0; i < faces.size() * 3; i += 3) {
-        os << "f " << i + 1 << " " << i + 2 << " " << i + 3 << std::endl;
+    for (size_t i = 0; i < normals.size(); ++i) {
+        TriangleNormal normal = normals[i];
+        os << "vn " << -normal.n1[0] << " " << normal.n1[1] << " " << normal.n1[2] << std::endl;
+        os << "vn " << -normal.n2[0] << " " << normal.n2[1] << " " << normal.n2[2] << std::endl;
+        os << "vn " << -normal.n3[0] << " " << normal.n3[1] << " " << normal.n3[2] << std::endl;
     }
+
+    // With vertex normals
+    for (size_t i = 0; i < faces.size() * 3; i += 3) {
+        os << "f " << i + 2 << "//" << i + 2 << " " << i + 1 << "//" << i + 1 << " " << i + 3 << "//" << i + 3 << std::endl;
+    }
+
+    // Without vertex normals
+    // for (size_t i = 0; i < faces.size() * 3; i += 3) {
+    //     os << "f " << i + 2 << " " << i + 1 << " " << i + 3 << std::endl;
+    // }
 
     os.close();
 }
